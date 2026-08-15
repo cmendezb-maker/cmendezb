@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Norge 2026</title>
+    <style>
+        /* --- RESET & BASE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #ffffff;
+            color: #111;
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER --- */
+        .header-wrapper {
+            width: 100%;
+            background: #fff;
+            padding-top: 40px; 
+            padding-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-wrapper h1 {
+            font-weight: 800;
+            font-size: clamp(3rem, 12vw, 8rem);
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+            line-height: 0.8;
+            text-align: center;
+            will-change: transform, opacity;
+        }
+
+        /* --- CONTENEDOR --- */
+        .main-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px 100px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .dynamic-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            /* No centramos para que el estiramiento flex rellene hasta los bordes */
+            justify-content: flex-start; 
+        }
+        			
+		
+		/* --- FOOTER --- */
+        footer {
+            width: 100%;
+            padding: 20px 20px;
+            text-align: center;
+            background-color: #ffffff;
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer-text {
+            font-size: 0.8rem;
+            text-transform: none; /* Eliminamos el forzado a mayúsculas */
+            letter-spacing: 0.02em; /* Reducimos el espaciado para minúsculas */
+            color: #888;
+            font-weight: 400;
+        }
+        
+		/* --- TARJETAS DINÁMICAS QUE RELLENAN LA CUADRÍCULA --- */
+        .link-card {
+            /* flex-grow: 1 permite que se estiren para rellenar la fila */
+            /* flex-basis: auto hace que el ancho inicial dependa del texto */
+            flex: 1 1 auto; 
+            
+/* Hace que el ancho inicial se ajuste al tamaño del h2 y p que lleva dentro */
+    width: fit-content;
+            /* El máximo evita que una sola tarjeta ocupe toda la fila si no queremos */
+            max-width: 600px;
+            
+			/* Hace que el ancho inicial se ajuste al tamaño del h2 y p que lleva dentro */
+			width: fit-content;
+            
+			/* Establecemos un mínimo para que no queden demasiado delgadas en nombres muy cortos */
+			min-width: 180px; 
+			max-width: 100%;
+			
+			/* Mantenemos una altura mínima para que todas las tarjetas de la fila respiren igual */
+			min-height: 120px; 
+			padding: 25px 35px;
+			
+			display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px 30px;
+            min-height: 110px; 
+            
+            text-decoration: none;
+            color: #111;
+            border-radius: 4px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease, filter 0.3s ease, background-color 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.03);
+            text-align: left;
+        }
+	
+        .link-card.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .link-card:hover {
+            transform: translateY(-3px) scale(1.01);
+            filter: brightness(0.97);
+        }
+
+        .link-card h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 4px;
+            white-space: nowrap; /* Mantiene el nombre en una línea para empujar el ancho */
+        }
+
+        .link-card p {
+            font-size: 0.95rem;
+            opacity: 0.6;
+            font-weight: 400;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 700px) { 
+            .link-card {
+                max-width: 100%; /* En móviles pequeños que ocupen todo el ancho si es necesario */
+            }
+        }
+
+        @media (max-width: 500px) {
+            .header-wrapper { padding-top: 20px; }
+            .header-wrapper h1 { font-size: 3.5rem; }
+            .link-card h2 { white-space: normal; } /* Permitir rotura en pantallas muy pequeñas */
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="header-wrapper" id="header-wrapper">
+        <h1 id="header-title">Norge 2026</h1>
+    </div>
+
+    <div class="main-container">
+        <main class="dynamic-grid" id="link-container"></main>
+    </div>
+
+    <script>
+        // Lista de ciudades
+        const links = [
+            { title: "Oslo", desc: "Oslo", url: "oslo.html", color: "#3a839c" },
+            { title: "Bergen", desc: "Bergen", url: "bergen.html", color: "#CC8686" },
+            { title: "Sognefjord", desc: "Sognefjord", url: "sognefjord.html", color: "#91AA5F" }
+        ];
+
+        // Función Fisher-Yates para el orden aleatorio
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const container = document.getElementById('link-container');
+        
+        // Mezclamos el array antes de pintar
+        const shuffledLinks = shuffleArray([...links]);
+
+        shuffledLinks.forEach(item => {
+            const card = document.createElement('a');
+            card.href = item.url;
+            card.className = 'link-card';
+            card.style.backgroundColor = item.color;
+            card.innerHTML = `<h2>${item.title}</h2><p>${item.desc}</p>`;
+            container.appendChild(card);
+        });
+
+        // Animación de scroll para el título
+        const headerTitle = document.getElementById('header-title');
+        window.addEventListener('scroll', () => {
+            const scrollPos = window.scrollY;
+            const translateY = scrollPos * 0.8;
+            const opacity = 1 - (scrollPos / 200);
+            if (opacity >= 0) {
+                headerTitle.style.transform = `translateY(-${translateY}px)`;
+                headerTitle.style.opacity = opacity;
+            }
+        });
+
+        // Observer para la aparición suave de las tarjetas
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.link-card').forEach(card => observer.observe(card));
+
+        document.getElementById('main-back-btn').addEventListener('click', () => window.history.back());
+    </script>
+	
+	<footer>
+        <p class="footer-text">&copy; 2026 Carlos Méndez Blanco</p>
+    </footer>
+	
+</body>
+</html>
