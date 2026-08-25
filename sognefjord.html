@@ -96,6 +96,14 @@
             text-align: center;
         }
 
+        .header-wrapper .header-date {
+            margin-top: 14px;
+            font-size: clamp(1.3rem, 4vw, 2.4rem);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: #999;
+        }
+
         /* --- GALLERY GRID --- */
         .main-container {
             width: 100%;
@@ -136,7 +144,7 @@
             width: 100%;
             height: auto;
             display: block;
-            filter: grayscale(100%) brightness(0.9);
+            filter: grayscale(55%) brightness(0.92);
             transition: transform 1.2s cubic-bezier(0.165, 0.84, 0.44, 1), 
                         filter 0.8s ease;
         }
@@ -266,6 +274,7 @@
 
     <div class="header-wrapper">
         <h1 id="header-title">Sognefjord</h1>
+        <p class="header-date">Agosto de 2026</p>
     </div>
 
     <div class="main-container">
