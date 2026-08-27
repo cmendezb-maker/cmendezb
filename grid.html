@@ -35,7 +35,7 @@
             grid-auto-rows: auto;
             gap: 16px;
             margin-bottom: 60px;
-            align-items: center;
+            align-items: start;
         }
         .country-card {
             border: 3px solid #1c1c1a;
@@ -137,10 +137,92 @@
         .card-jp { grid-column: 6; grid-row: 1; }
 
         @media (max-width: 1024px) {
-            .grid { grid-template-columns: repeat(3, 1fr); }
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            /* Tablet: Redistribute cards in 3-column layout */
+            .card-ny { grid-column: 1; grid-row: 1; }
+            .card-uk { grid-column: 2; grid-row: 1; }
+            .card-nl { grid-column: 3; grid-row: 1; }
+            .card-pt { grid-column: 1; grid-row: 2; }
+            .card-fr { grid-column: 2; grid-row: 2; }
+            .card-de { grid-column: 3; grid-row: 2; }
+            .card-no { grid-column: 1; grid-row: 3; }
+            .card-dk { grid-column: 2; grid-row: 3; }
+            .card-ch { grid-column: 3; grid-row: 3; }
+            .card-it { grid-column: 1; grid-row: 4; }
+            .card-tr { grid-column: 2; grid-row: 4; }
+            .card-jp { grid-column: 3; grid-row: 4; }
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: clamp(1.8rem, 8vw, 3.5rem);
+            }
         }
         @media (max-width: 640px) {
-            .grid { grid-template-columns: repeat(2, 1fr); }
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            /* Mobile: 2-column layout with logical flow */
+            .card-ny { grid-column: 1; grid-row: 1; }
+            .card-uk { grid-column: 2; grid-row: 1; }
+            .card-nl { grid-column: 1; grid-row: 2; }
+            .card-de { grid-column: 2; grid-row: 2; }
+            .card-pt { grid-column: 1; grid-row: 3; }
+            .card-fr { grid-column: 2; grid-row: 3; }
+            .card-no { grid-column: 1; grid-row: 4; }
+            .card-dk { grid-column: 2; grid-row: 4; }
+            .card-ch { grid-column: 1; grid-row: 5; }
+            .card-jp { grid-column: 2; grid-row: 5; }
+            .card-it { grid-column: 1; grid-row: 6; }
+            .card-tr { grid-column: 2; grid-row: 6; }
+
+            .container {
+                padding: 0 12px;
+                margin: 20px auto;
+            }
+            .header {
+                padding: 20px 12px;
+            }
+            .country-card {
+                padding: 16px;
+                border-width: 2px;
+            }
+            .city {
+                font-size: 14px;
+                padding: 4px 0;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            /* Extra small phones: Single column */
+            .card-ny { grid-column: 1; grid-row: auto; }
+            .card-uk { grid-column: 1; grid-row: auto; }
+            .card-nl { grid-column: 1; grid-row: auto; }
+            .card-de { grid-column: 1; grid-row: auto; }
+            .card-pt { grid-column: 1; grid-row: auto; }
+            .card-fr { grid-column: 1; grid-row: auto; }
+            .card-no { grid-column: 1; grid-row: auto; }
+            .card-dk { grid-column: 1; grid-row: auto; }
+            .card-ch { grid-column: 1; grid-row: auto; }
+            .card-jp { grid-column: 1; grid-row: auto; }
+            .card-it { grid-column: 1; grid-row: auto; }
+            .card-tr { grid-column: 1; grid-row: auto; }
+
+            .header h1 {
+                font-size: clamp(1.5rem, 6vw, 2.5rem);
+            }
+            .container {
+                padding: 0 8px;
+            }
+            .country-card {
+                padding: 12px;
+            }
         }
     </style>
 </head>
@@ -225,10 +307,9 @@
 
         // Links activos - fácil de cambiar
         const linkMap = {
-            'Bergen': 'bergen.html',
+            'Bergen': 'berge.html',
             'Oslo': 'oslo.html',
-            'Berlin': 'berlin.html',
-			'Sognefjord': 'sognefjord.html'
+            'Berlin': 'berlin.html'
         };
 
         // ============================================================
