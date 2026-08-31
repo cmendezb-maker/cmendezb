@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lugares y Momentos - Mapa Interactivo Ajustado</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f7f6f2;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-weight: 800;
+            font-size: clamp(2rem, 8cqi, 6rem); 
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+            line-height: 1;
+			white-space: nowrap;     
+			overflow: hidden;        
+			text-overflow: ellipsis; 
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+			container-type: inline-size;
+        }
+        .map-wrapper {
+            position: relative;
+            background: white;
+            border: 1px solid #e4e2d9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.05);
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #fafaf8;
+        }
+
+        /* Estilos SVG */
+        path {
+            fill: #e8e6e1;
+            stroke: #bbb;
+            stroke-width: 0.3;
+        }
+
+        .dot {
+            cursor: pointer;
+            transition: r 0.2s ease;
+        }
+        .dot:hover {
+            filter: drop-shadow(0 0 6px rgba(0,0,0,.3));
+        }
+        .dot-label {
+            pointer-events: none;
+            font-size: 10px;
+            font-weight: 600;
+            text-anchor: middle;
+            fill: #1c1c1a;
+        }
+        .tooltip {
+            position: fixed;
+            background: #1c1c1a;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: none;
+        }
+        .tooltip.show {
+            opacity: 1;
+            display: block;
+        }
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e4e2d9;
+        }
+        .legend h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid #1c1c1a;
+            flex-shrink: 0;
+        }
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LUGARES Y MOMENTOS</h1>
+    </div>
+
+    <div class="container">
+        <div class="map-wrapper">
+            <svg id="map" viewBox="50 50 700 360" xmlns="http://www.w3.org/2000/svg">
+                <!-- Mapa base con siluetas -->
+                <path d="m555.43243,135.80013l-2.99,7.521l-4.124,-0.217l-4.349,9.518l3.691,4.701l-7.606,10.504l-3.907,-0.658l-2.611,3.285l0.648,1.971l3.043,0.217l1.521,3.5l3.044,0.658l9.344,12.04l0,6.129l4.563,2.844l4.996,-0.873l6.303,3.719l7.605,2.187l3.691,-0.439l4.132,-0.441l8.687,-5.688l2.828,0.44l1.08,2.567l2.396,0.718l3.26,4.813l-2.17,4.814l1.306,3.285l3.69,1.312l0.647,3.942l4.35,0.439l0.647,-1.971l6.302,-3.285l3.907,0.217l4.563,5.03l3.043,-1.312l1.954,0.216l0.873,2.412l1.521,0.216l2.169,-3.06l8.688,-3.285l7.823,-9.413l2.61,-8.974l-0.217,-5.912l-3.259,-0.656l1.953,-2.188l-0.434,-3.501l-8.255,-8.314l0,-4.157l2.386,-3.062l2.388,-1.098l0.216,-2.412l-6.085,0l-1.089,3.285l-2.828,-0.656l-3.475,-3.718l2.17,-5.688l3.043,-3.285l2.827,0.217l-0.434,5.031l1.521,1.313l3.691,-3.717l1.306,-0.216l-0.433,-2.844l3.476,-4.158l2.61,0.216l1.521,-4.813l1.781,-0.942l0.182,-3l-1.729,-1.815l-0.147,-4.736l3.329,-0.217l-0.216,-12.214l-2.334,1.4l-0.864,3.13l-3.897,-0.009l-11.298,-6.354l-8.16,-9.837l-8.281,-0.086l-2.107,1.833l2.68,6.137l-0.935,5.758l-3.335,1.383l-1.876,-0.147l-0.139,5.696l1.954,0.441l3.476,-1.53l4.563,2.187l0,2.188l-3.26,0.216l-2.611,5.688l-2.386,0.215l-8.472,11.16l-8.902,3.941l-6.086,0.441l-4.124,-2.844l-5.869,3.068l-6.302,-1.971l-1.521,-4.158l-10.642,-0.657l-5.646,-9.188l-2.386,0l-1.92,-4.262l-2.287,-0.181z"/>
+                <g id="nl">
+                    <path d="m343.5,195l-8,12l4,8l10,-3l6,-10l-12,-7z"/>
+                </g>
+                <g id="dk">
+                    <path d="m326.02415,139.42025l-10.16661,11.24961l-0.36856,7.32586l4.63536,12.08596l7.25498,-1.37218l-0.90439,-9.8746l5.00109,-5.58795l-0.09639,-4.38871l-3.52968,-9.13747l-1.82579,-0.30052l0,0z"/>
+                    <path d="m331.28606,160.05399l-3.01086,0.64923l0,4.48794l3.19797,2.4807l2.82658,-0.70877l-0.68893,-4.26113l-2.32477,-2.64797z"/>
+                    <path d="m340.71839,155.78436l-2.69049,0.65207l-2.99385,2.74436l1.27012,5.53975l3.66293,1.43739l-3.782,1.51677l-0.72295,1.94203l5.68434,0l1.70672,-3.11576l-2.17734,-1.07166l0.70877,-2.72735l2.59694,-3.41628l-0.70877,-2.95416l-2.55441,-0.54717z"/>
+                </g>
+                <path d="m323.3725,224.45077l-4.28077,1.04666l-8.56153,9.31907l-2.57518,0.17482l-3.4291,-2.42278l-2.22555,0.52221l-1.70782,5.3476l-12.51508,0.34739l0.34963,2.77017l8.56153,5.69947l9.9399,7.94071l-0.17258,9.49389l-5.30725,9.31683l11.48859,5.52241l11.66341,0.34515l3.59943,-4.14629l7.36471,0.17482l2.05298,1.90057l7.36247,-0.52221l3.77873,-4.84556l-4.80746,-5.69499l-0.34739,-3.62184l1.02649,-3.96923l-2.40037,-3.44927l-4.10819,1.19906l-0.51997,-3.09963l9.08598,-10.0161l0,-6.04462l-5.26243,-1.71903l-3.20945,-2.2121l-14.84373,-9.35717l0,0z"/>
+                <g id="gb">
+                    <path d="m238.21274,94.05205l-4.73688,7.17119l1.88936,2.87147l10.92296,0l0,4.79077l-2.85051,3.82663l1.89236,10.04266l6.16213,11.95897l4.73388,10.99483l7.58439,2.87147l3.30863,5.74893l-0.46411,5.25488l-4.73688,2.87147l-0.4671,2.38042l3.31162,1.91631l-2.84752,3.82962l-6.65019,2.87147l-12.81233,-1.42825l-19.95357,9.0875l-6.65019,-3.33857l18.99841,-11.00081l-2.38341,-1.42825l-9.96481,-0.95815l6.16213,-9.08151l0.95516,-7.66524l8.07245,-0.95516l-1.42226,-14.83044l-9.5037,-0.46411l-2.84452,-3.33857l0.46411,-11.00081l-5.69204,0.4671l5.69204,-19.12716l10.45586,-7.66524l3.3745,3.32659l0,0z"/>
+                    <path d="m218.28611,126.11729l-8.54255,0.95815l-0.4671,7.66524l5.69204,3.82663l6.16213,-1.42226l2.38341,-4.29972l-5.22793,-6.72804l0,0z"/>
+                </g>
+                <g id="it">
+                    <path d="m373.00964,313.58441l-1.59032,4.03079l0.43399,4.39344l6.13834,7.16981l9.66082,-0.3359l21.32812,24.77331l13.31409,3.85541l7.86539,7.42545l1.87569,16.92873l4.21212,-2.46128l3.65328,-9.22683l-0.90069,-6.62584l6.24535,-0.56479l0.90366,-3.75434l-17.6035,-8.42423l-16.70281,-16.41745l-6.65259,-9.81836l-1.62004,-9.32492l8.50449,-2.03323l-2.18186,-6.14131l-5.21684,-4.39344l-4.49748,-0.20511l-6.26616,1.72408l-5.91539,8.26669l-3.57004,2.36318l-5.52302,-3.39169l-5.89459,2.1878l0,0z"/>
+                    <path d="m424.83622,380.48781l-3.72462,-2.00351l-12.71661,2.00351l0.43399,3.44222l11.43544,5.75785l1.72111,1.87569l3.00823,0.43697l-0.15755,-11.51272l0,0z"/>
+                    <path d="m386.60316,355.72045l-6.80419,3.44222l0.90069,13.28437l5.4487,0.92447l4.0843,-3.9l0,-12.58879l-3.6295,-1.16227l0,0z"/>
+                </g>
+                <g id="jp" transform="translate(680, 340) scale(1.5) rotate(15) translate(-717, -255)">
+                    <path d="m685.02383,245.56857l-2.24799,2.26074l0.92311,3.18226l1.97058,0.13711l1.32328,6.90659l1.58316,1.72186l2.77093,-2.52221l0.24074,-7.60968l-3.18864,-3.38793l-3.37517,-0.68875l0,0z"/>
+                    <path d="m696.77555,239.18332l-4.23929,3.43735l-0.94224,4.33495l2.88891,1.9929l4.18509,-4.38438l0.5899,-4.8818l-2.48235,-0.49902z"/>
+                    <path d="m691.87302,232.55893l-6.72643,7.70375l0,3.70201l4.15161,-0.49743l6.51279,-5.72679l4.35408,-0.80035l1.05703,1.24197l0.02391,3.7897l1.09689,1.9929l2.00087,0l2.81078,-3.44054l1.18458,-4.52149l5.66302,-0.13711l5.54185,-6.64193l-2.89209,-11.02631l-1.32328,-5.84158l2.89369,-2.3851l-6.58932,-9.95014l-1.50504,-1.18617l-2.98935,1.18617l-0.76687,4.11972l0,3.32097l1.58475,1.86057l0.52294,8.76556l-4.08146,5.04442l-2.36756,-1.46199l-1.84782,4.11972l-0.40017,3.8455l1.44924,2.26074l-0.92311,1.72186l-3.03239,-2.52221l-2.10769,0l-1.84463,1.06182l-1.45083,0.40177l0,0z"/>
+                    <path d="m703.21819,172.55357l-2.10609,1.86216l1.06022,3.98261l1.84622,1.85898l-0.13711,6.10624l-2.37075,0.92152l-1.84622,4.11972l5.40155,7.42793l3.55533,-1.19893l0.66164,-1.86057l-3.81999,-3.44532l2.37075,-3.0595l2.50627,0.39858l5.46851,3.6749l0.5899,-4.11972l2.59874,-4.74947l3.63664,-3.68606l-3.93637,-1.79361l-1.50504,-2.87137l-1.97058,1.32328l-1.70752,2.12204l-3.69244,-0.79875l-3.81999,-2.52221l-2.78368,-3.69244l0,0z"/>
+                    <path d="m723.10253,168.43385l-3.69404,5.18154l0.26147,2.52221l1.84622,-0.80035l4.34133,-5.443l-2.75498,-1.4604l0,0z"/>
+                    <path d="m727.98115,160.86721l-1.32169,3.58403l0.13711,2.3851l2.24639,-1.46358l2.10769,-4.24408l0,-1.58475l-3.16951,1.32328l0,0z"/>
+                </g>
+                <path d="m514.16859,89.01338l3.75198,-2.74687l-0.33718,-3.08191l-2.37532,-1.37666l0.33718,-3.76702l2.04029,0l0,-2.06176l-8.85485,-2.39251l-13.27476,1.37451l-1.35518,5.82878l-3.06687,-1.02444l-2.04244,-3.43413l-6.47952,0.33289l-0.68725,6.51389l-3.06258,1.37666l-1.7074,-3.43627l-13.62698,10.97245l2.72969,3.08406l-5.10716,2.39465l-11.58239,22.98223l-4.08272,2.74687l0.33289,2.05962l4.08058,2.05962l-1.02014,4.45427l-6.81456,-0.35222l-2.04458,-2.39465l-4.41776,5.14367l-2.72969,2.05962l-0.68725,4.81078l-2.37318,1.37451l-6.12945,1.37451l-3.06258,9.61942l2.04244,15.78109l2.37532,7.20329l2.72969,2.74687l6.12731,-0.33504l8.857,-8.5778l3.39547,-5.82663l1.02659,8.5735l5.79227,-10.2852l0.33074,-28.83034l4.71414,-2.97023l1.41102,-15.90995l14.29275,-20.58758l6.81456,-2.39465l3.06473,-3.76916l10.21003,2.39465l5.10502,3.08191l1.70955,-8.5735l8.52196,-5.14582l5.12864,8.93002l0,0z"/>
+                <g id="pt">
+                    <path d="m222.01462,257.60238l-1.18161,16.48516l-3.37287,3.05101l0.3439,1.865l2.36101,3.90635l-1.5233,4.76169l2.53296,0.85975l5.90803,-0.6878l-0.3417,-4.76169l3.87108,-22.08896l-0.84211,-3.04881l-7.75539,-0.3417l0,0z"/>
+                    <path d="m178.66337,305.58305l-2.05899,2.61232l2.05899,2.61232l3.10392,-1.56298l-3.10392,-3.66165l0,0z"/>
+                    <path d="m110.93711,268.61821l-2.59027,2.61011l4.64486,2.61232l0.51585,-3.6352l-2.57043,-1.58723l0,0z"/>
+                    <path d="m124.90474,267.05523l-3.10392,2.07442l2.59027,2.07442l4.13562,-1.04934l-3.62197,-3.09951l0,0z"/>
+                    <path d="m126.96373,274.35208l-1.54314,4.17089l2.0612,2.61232l2.59027,-2.07442l-3.10833,-4.70879l0,0z"/>
+                    <path d="m139.37059,282.68063l-1.0295,2.61011l1.54535,1.56298l4.13341,-2.61011l-4.64926,-1.56298l0,0z"/>
+                </g>
+                <path d="m80.49931,94.51359l-0.6199,2.49033l-2.16211,-1.40032l-1.07783,0l-0.6199,2.64513l-7.56345,16.9486l2.00732,14.76714l2.4717,1.24481l0.46438,4.04545l5.09175,0l4.93695,3.72941l9.71911,0.93522l1.07783,4.97422l1.54222,1.09001l2.16211,-2.17358l1.69773,0.77397l1.54222,7.14923l2.62005,1.70991l2.16211,-4.04545l6.63468,-4.82014l4.31777,2.01878l3.70433,0.31031l0.15479,-2.32909l7.71251,0.15551l1.54222,1.70991l0.30959,3.8842l-0.92304,2.17429l1.07783,3.72869l2.31691,0l2.31619,-3.5739l-0.92304,-1.70991l-0.92304,-3.72941l1.38742,-4.19953l6.32509,-5.43932l4.78216,-1.3996l-0.61918,-4.50983l6.63468,-7.15425l6.63468,-1.09001l-1.07783,-3.72153l6.47988,-3.73013l0,-4.9735l-0.6199,-0.31031l-2.31691,0.77541l-0.30959,3.04717l-7.70033,0.09245l-6.03342,4.0089l-9.47187,3.09733l-1.5114,-1.85324l4.29914,-6.50425l-2.12485,-2.02523l-1.44332,-2.75048l-2.99198,-2.40362l-3.25213,-0.27232l-6.14521,-4.19379l-43.69515,-7.19366l0,0z"/>
+                <path d="m520.43814,352.05667l-3.56916,-2.20808l-1.96807,-1.56857l-3.31057,1.41837l0,0l-2.28705,5.79117l3.43599,-0.77422l2.41866,-1.83955l5.32354,1.45244l-3.01327,2.90642l-8.01318,-0.38711l-2.95752,3.24089l0,1.58096l1.8891,1.58096l0,1.7389l-0.79125,2.06252l0.79125,1.7389l2.51622,-1.25733l2.51622,2.68964l-0.62867,1.90149l-0.93526,1.26972l1.40444,1.58096l6.9076,1.41837l4.86056,-2.06097l0,-2.99933l2.35518,0.46918l5.64871,3.31986l6.11325,-0.95074l2.66487,-2.5286l1.72496,0.62867l0,2.85068l2.35518,0l2.0331,-3.94852l17.88294,-1.90303l7.80414,-0.94919l-2.06097,-2.70358l-0.03871,-3.65277l1.56547,-1.87361l-5.70136,-4.57719l0.30504,-3.95007l-3.13095,0l-5.19347,-2.54409l0,0l-2.98694,3.16037l-10.97535,-0.32362l-6.58552,-3.94698l-6.32074,0.56673l-7.03612,4.2257l-5.0123,-0.6457z"/>
+                <path d="m417.50358,209.88103l7.72388,-1.25144l0,-5.45127l6.46743,-1.06372l3.54908,3.57161l3.7418,0.41047l5.84172,-2.53291l5.21349,1.47169l4.58527,3.98458l0.62822,14.90463l4.58527,6.10201l-6.03444,0.84347l-10.01902,6.29474l0.84597,2.09991l8.9578,8.39465l-0.62822,4.19733l-8.32958,4.19733l-7.72138,0.21525l-1.88467,3.97957l-3.95705,0l-1.88216,-4.19482l-6.88041,-1.68944l-0.22025,-6.92546l-3.479,-1.92722l0.28533,-4.65785l-1.01617,-3.32382l-4.9607,-4.56525l1.03619,-7.14321l5.40872,-2.53041l-1.85713,-13.41042l0,0z"/>
+
+                <!-- Puntos de localidades - AJUSTADOS -->
+                <g id="points"></g>
+
+                <!-- Etiquetas -->
+                <g id="labels"></g>
+            </svg>
+            <div class="tooltip" id="tooltip"></div>
+        </div>
+
+    </div>
+
+    <footer>&copy; 2026 Carlos Méndez Blanco</footer>
+
+    <script>
+        // LOCALIDADES CON COORDENADAS AJUSTADAS A LOS LÍMITES REALES DE CADA PAÍS
+        const places = [
+            // América del Norte (EE.UU.)
+            // Path principal: x~80-750, y~40-250. New York en costa este: x~120-150, y~150-200
+            { id: 'ny', name: 'New York', country: 'EE.UU.', x: 140, y: 135, color: '#B4513B' },
+
+            // Reino Unido (GB path: x~215-330, y~94-280)
+            { id: 'edi', name: 'Edimburgo', country: 'Reino Unido', x: 245, y: 115, color: '#2E7D5B' },
+            { id: 'hull', name: 'Kingston-upon-Hull', country: 'Reino Unido', x: 255, y: 142, color: '#2E7D5B' },
+            { id: 'lon', name: 'Londres', country: 'Reino Unido', x: 255, y: 165, color: '#2E7D5B' },
+
+            // Escandinavia - Noruega (en el norte de Europa)
+            // Sognefjord, Bergen en el oeste: x~360-400, y~60-100
+            // Oslo en el este: x~400-430, y~95-120
+            { id: 'sogn', name: 'Sognefjord', country: 'Noruega', x: 438, y: 135, color: '#3E6DA8' },
+            { id: 'bergen', name: 'Bergen', country: 'Noruega', x: 422, y: 162, color: '#3E6DA8' },
+            { id: 'oslo', name: 'Oslo', country: 'Noruega', x: 450, y: 165, color: '#3E6DA8' },
+
+            // Dinamarca (DK path: x~326-345, y~139-172)
+            { id: 'cop', name: 'Copenhague', country: 'Dinamarca', x: 335, y: 165, color: '#185FA5' },
+
+            // Países Bajos (NL path: x~343-365, y~195-220)
+            { id: 'ams', name: 'Amsterdam', country: 'Paises Bajos', x: 345, y: 207, color: '#F5C99B' },
+
+            // Alemania (DE path: x~417-492, y~209-330)
+            { id: 'ber', name: 'Berlin', country: 'Alemania', x: 450, y: 215, color: '#E8D097' },
+
+            // Francia (en el path principal, alrededor de x~290-380, y~220-330)
+            { id: 'par', name: 'Paris', country: 'Francia', x: 325, y: 250, color: '#C4B7D9' },
+
+            // Península Ibérica - Portugal (PT path: x~110-290, y~257-410)
+            { id: 'azores', name: 'Azores', country: 'Portugal', x: 115, y: 280, color: '#A7C4B5' },
+            { id: 'opo', name: 'Oporto', country: 'Portugal', x: 225, y: 260, color: '#A7C4B5' },
+            { id: 'lis', name: 'Lisboa', country: 'Portugal', x: 225, y: 285, color: '#A7C4B5' },
+
+            // Italia (IT path: x~393-580, y~313-420)
+            // Venecia en el norte: x~430-450, y~305-330
+            // Roma en el centro-sur: x~430-460, y~350-380
+            { id: 'ven', name: 'Venecia', country: 'Italia', x: 405, y: 318, color: '#E3B4A0' },
+            { id: 'rom', name: 'Roma', country: 'Italia', x: 405, y: 345, color: '#E3B4A0' },
+
+            // Turquía (TR path: x~578-760, y~342-430) - CORRECCIÓN: Estambul en x~620-650
+            { id: 'ist', name: 'Estambul', country: 'Turquia', x: 515, y: 350, color: '#9ECDCB' },
+
+            // China (path principal: x~514-850, y~89-210)
+            // Beijing en el norte: x~620-650, y~140-170
+            // Shanghai en el este: x~680-700, y~180-210
+            { id: 'pek', name: 'Pekin', country: 'China', x: 640, y: 155, color: '#E9A8A0' },
+            { id: 'sha', name: 'Shanghai', country: 'China', x: 645, y: 187, color: '#E9A8A0' },
+
+            // Japón (JP path: x~685-750, y~160-350)
+            { id: 'tok', name: 'Tokio', country: 'Japon', x: 690, y: 270, color: '#F2C6CE' },
+            { id: 'kio', name: 'Kioto', country: 'Japon', x: 690, y: 295, color: '#F2C6CE' },
+            { id: 'hir', name: 'Hiroshima', country: 'Japon', x: 655, y: 300, color: '#F2C6CE' },
+            { id: 'miy', name: 'Miyajima', country: 'Japon', x: 640, y: 325, color: '#F2C6CE' }
+        ];
+
+        const activeLinks = ['oslo', 'bergen', 'sogn', 'rom','ber'];
+        const linkMap = {
+            'rom': 'roma.html',
+            'oslo': 'oslo.html',
+            'bergen': 'bergen.html',
+            'sogn': 'sognefjord.html',
+
+            'ber': 'berlin.html'
+        };
+
+        const NS = 'http://www.w3.org/2000/svg';
+        const pointsGroup = document.getElementById('points');
+        const labelsGroup = document.getElementById('labels');
+        const tooltip = document.getElementById('tooltip');
+
+        function addPlace(newPlace) {
+            places.push(newPlace);
+            render();
+            console.log(`✓ Localidad agregada: ${newPlace.name}`);
+        }
+
+        function removePlace(placeId) {
+            const index = places.findIndex(p => p.id === placeId);
+            if (index > -1) {
+                const removed = places.splice(index, 1)[0];
+                render();
+                console.log(`✓ Localidad eliminada: ${removed.name}`);
+            }
+        }
+
+        function updatePlace(placeId, updates) {
+            const place = places.find(p => p.id === placeId);
+            if (place) {
+                Object.assign(place, updates);
+                render();
+                console.log(`✓ Localidad actualizada: ${place.name}`);
+            }
+        }
+
+        function getPlacesByCountry(country) {
+            return places.filter(p => p.country === country);
+        }
+
+        function render() {
+            pointsGroup.innerHTML = '';
+            labelsGroup.innerHTML = '';
+
+            places.forEach(place => {
+                const dot = document.createElementNS(NS, 'circle');
+                dot.setAttribute('cx', place.x);
+                dot.setAttribute('cy', place.y);
+                dot.setAttribute('r', '5');
+                dot.setAttribute('fill', place.color);
+                dot.setAttribute('stroke', 'white');
+                dot.setAttribute('stroke-width', '1.5');
+                dot.setAttribute('class', 'dot');
+
+                dot.addEventListener('mouseenter', (e) => {
+                    dot.setAttribute('r', '7');
+                    const hasLink = activeLinks.includes(place.id);
+                    tooltip.textContent = hasLink ?
+                        'IR A ' + place.name.toUpperCase() :
+                        'PRÓXIMAMENTE';
+                    tooltip.classList.add('show');
+                    tooltip.style.left = (e.clientX - 50) + 'px';
+                    tooltip.style.top = (e.clientY - 40) + 'px';
+                });
+
+                dot.addEventListener('mouseleave', () => {
+                    dot.setAttribute('r', '5');
+                    tooltip.classList.remove('show');
+                });
+
+                dot.addEventListener('click', () => {
+                    if (activeLinks.includes(place.id) && linkMap[place.id]) {
+                        window.location.href = linkMap[place.id];
+                    }
+                });
+
+                pointsGroup.appendChild(dot);
+
+                const label = document.createElementNS(NS, 'text');
+                label.setAttribute('x', place.x);
+                label.setAttribute('y', place.y - 10);
+                label.setAttribute('class', 'dot-label');
+                label.textContent = place.name;
+                labelsGroup.appendChild(label);
+            });
+
+            updateLegend();
+        }
+
+        function updateLegend() {
+            const legend = document.getElementById('legend');
+            legend.innerHTML = '';
+
+            const byCountry = {};
+            places.forEach(p => {
+                if (!byCountry[p.country]) byCountry[p.country] = [];
+                byCountry[p.country].push(p);
+            });
+
+            Object.entries(byCountry).sort().forEach(([country, items]) => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+
+                const dot = document.createElement('div');
+                dot.className = 'legend-dot';
+                dot.style.backgroundColor = items[0].color;
+
+                const text = document.createElement('span');
+                text.textContent = `${country} (${items.length})`;
+
+                item.appendChild(dot);
+                item.appendChild(text);
+                legend.appendChild(item);
+            });
+        }
+
+        render();
+        console.log('✓ Mapa cargado con coordenadas AJUSTADAS. Métodos: addPlace, removePlace, updatePlace, getPlacesByCountry');
+    </script>
+</body>
+</html>
