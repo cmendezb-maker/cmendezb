@@ -17,14 +17,18 @@
         }
         .header h1 {
             font-weight: 800;
-            font-size: clamp(2rem, 12vw, 4rem);
+            font-size: clamp(2rem, 8cqi, 6rem); 
             letter-spacing: -0.05em;
             text-transform: uppercase;
-            line-height: 0.8;
+            line-height: 1;
+			white-space: nowrap;     
+			overflow: hidden;        
+			text-overflow: ellipsis; 
         }
         .container {
             max-width: 1000px;
             margin: 0 auto;
+			container-type: inline-size;
         }
         .map-wrapper {
             position: relative;
@@ -210,7 +214,7 @@
             { id: 'par', name: 'Paris', country: 'Francia', x: 325, y: 250, color: '#C4B7D9' },
 
             // Península Ibérica - Portugal (PT path: x~110-290, y~257-410)
-            { id: 'azores', name: 'Azores', country: 'Portugal', x: 115, y: 280, color: '#A7C4B5' },
+            { id: 'azores', name: 'Açores', country: 'Portugal', x: 115, y: 280, color: '#A7C4B5' },
             { id: 'opo', name: 'Oporto', country: 'Portugal', x: 225, y: 260, color: '#A7C4B5' },
             { id: 'lis', name: 'Lisboa', country: 'Portugal', x: 225, y: 285, color: '#A7C4B5' },
 
@@ -236,13 +240,14 @@
             { id: 'miy', name: 'Miyajima', country: 'Japon', x: 640, y: 325, color: '#F2C6CE' }
         ];
 
-        const activeLinks = ['oslo', 'bergen', 'sogn', 'rom','ber'];
+        const activeLinks = ['oslo', 'bergen', 'sogn', 'rom','ber', 'azores', 'hull'];
         const linkMap = {
             'rom': 'roma.html',
             'oslo': 'oslo.html',
             'bergen': 'bergen.html',
             'sogn': 'sognefjord.html',
-
+            'azores': 'azores.html',
+            'hull': 'hull.html',
             'ber': 'berlin.html'
         };
 
