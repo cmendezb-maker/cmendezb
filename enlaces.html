@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enlaces</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f0f0f2;
+    --card-bg: #ffffff;
+    --border: #e5e5ea;
+    --text: #1c1c1e;
+    --text-muted: #8a8a90;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 16px 60px;
+  }
+
+  .stack {
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .empty { color: var(--text-muted); font-size: 14px; padding: 20px 4px; }
+
+  .lk-section { background: var(--card-bg); }
+  .lk-section + .lk-section { border-top: 1px solid var(--border); }
+  .lk-section.is-collapsed {
+    background: color-mix(in srgb, #000 calc(var(--shade, 0) * 6%), var(--surface));
+  }
+
+  .lk-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+  }
+  .lk-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lk-count { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
+  .lk-chevron { color: var(--text-muted); font-size: 13px; transition: transform 0.15s ease; }
+  .lk-section.is-expanded .lk-chevron { transform: rotate(90deg); }
+
+  /* Selector de color del bloque */
+  .lk-color-picker { position: relative; flex: none; }
+  .lk-color-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--border);
+    background: var(--c);
+    cursor: pointer;
+    padding: 0;
+    display: block;
+  }
+  .lk-color-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 5;
+  }
+  .color-opt { width: 20px; height: 20px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; padding: 0; }
+  .color-opt.is-selected { border-color: var(--text); }
+
+  .lk-links { display: flex; flex-direction: column; padding: 0 10px 10px; }
+  .lk-link {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .lk-link:hover { background: var(--surface); }
+  .lk-icon { flex: none; font-size: 14px; width: 18px; text-align: center; }
+  .lk-icon.is-dot::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+  .lk-text { min-width: 0; }
+  .lk-label { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lk-sub { font-size: 11.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Estrecho (móvil/tablet): una sola pila, como ahora. */
+  /* Ancho (ordenador): varias columnas, cada bloque como tarjeta suelta.
+     Las columnas se generan en JS con reparto fijo (no con CSS `columns`),
+     para que un bloque no cambie de columna al abrirse/cerrarse. */
+  .stack.lk-columns {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .lk-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+  .lk-columns .lk-section {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+
+  @media (min-width: 720px) {
+    main { max-width: 1000px; padding-top: 48px; }
+  }
+
+  @media (max-width: 480px) {
+    main { padding: 24px 10px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <div id="stack" class="stack"></div>
+</main>
+
+<script>
+// ============================================================================
+// EDITA AQUÍ. Formato: nombre del bloque EN MAYÚSCULAS en su propia línea,
+// y debajo un enlace por línea. Línea en blanco entre bloques (opcional,
+// solo por claridad).
+//
+// Cada enlace puede ser:
+//   - solo la URL                          → el nombre se deduce del dominio
+//   - Nombre que quieras | URL              → el nombre se muestra en negrita,
+//                                             y la URL debajo en gris
+//
+// El nombre del bloque admite al final, opcional, [ABIERTO] o [CERRADO]:
+// así se decide cómo se muestra la primera vez (antes de que tú lo toques
+// con el ratón). Si no se pone nada, sale abierto. Una vez que lo abres o
+// cierras a mano, el navegador recuerda tu elección y ya manda sobre esto.
+// ============================================================================
+const LINKS_TEXT = `
+ANALISIS [CERRADO]
+INTRANET | http://10.0.0.95/
+https://core.grupo-aei.com/
+IRUS | http://10.0.0.95/IRUS/Default.asp?Modulo=9
+Mi portfolio | https://cmendezb-maker.github.io/cmendezb/Proyectos.html
+
+PERSONAL
+https://mail.google.com
+https://web.whatsapp.com/
+https://drive.google.com
+https://calendar.google.com/calendar/u/0/r#main_7
+
+PERDASDASDASSONAL
+https://mail.google.com
+https://web.whatsapp.com/
+https://drive.google.com
+https://calendar.google.com/calendar/u/0/r#main_7
+
+ANAREWREISIS
+INTRANET | http://10.0.0.95/
+https://core.grupo-aei.com/
+IRUS | http://10.0.0.95/IRUS/Default.asp?Modulo=9
+Mi portfolio | https://cmendezb-maker.github.io/cmendezb/Proyectos.html
+
+ANALRWREWRIS
+INTRANET | http://10.0.0.95/
+https://core.grupo-aei.com/
+IRUS | http://10.0.0.95/IRUS/Default.asp?Modulo=9
+Mi portfolio | https://cmendezb-maker.github.io/cmendezb/Proyectos.html
+
+
+REWRTEWRERDASDASDASSONAL
+https://mail.google.com
+https://web.whatsapp.com/
+https://drive.google.com
+https://calendar.google.com/calendar/u/0/r#main_7
+
+
+BANCA [CERRADO]
+https://ing.ingdirect.es/app-login/
+https://univia.unicajabanco.es/login?locale=es
+https://drive.google.com
+https://calendar.google.com/calendar/u/0/r#main_7
+`;
+
+// Nombre e icono "bonitos" para dominios conocidos, cuando el enlace no trae
+// nombre propio. Si no coincide con nada de esta lista, se muestra el dominio.
+const KNOWN_SITES = [
+  [/mail\.google\.com/, 'Gmail', '✉️'],
+  [/web\.whatsapp\.com/, 'WhatsApp', '💬'],
+  [/drive\.google\.com/, 'Google Drive', '📁'],
+  [/calendar\.google\.com/, 'Google Calendar', '📅'],
+  [/docs\.google\.com/, 'Google Docs', '📄'],
+];
+
+// Colores disponibles para los bloques (clic en el punto de color para elegir).
+const PRESET_COLORS = [
+  { name: 'Azul', hex: '#5b8def' },
+  { name: 'Verde', hex: '#4caf7d' },
+  { name: 'Rojo', hex: '#e2645a' },
+  { name: 'Naranja', hex: '#e8973f' },
+];
+
+const EXPANDED_KEY = 'enlaces_expanded_overrides_v1'; // { título: true/false }, solo lo que se ha tocado a mano
+const COLOR_KEY = 'enlaces_block_colors_v1';
+
+function loadJson(key, fallback) {
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch { return fallback; }
+}
+function saveJson(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* no crítico */ }
+}
+
+function parseLinks(text) {
+  const blocks = [];
+  let current = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const looksLikeHeader = !/^https?:\/\//i.test(line) && !line.includes('|') && line === line.toUpperCase();
+    if (looksLikeHeader) {
+      const m = line.match(/^(.*?)\s*\[(ABIERTO|CERRADO)\]\s*$/);
+      const title = m ? m[1].trim() : line;
+      const defaultCollapsed = m ? m[2] === 'CERRADO' : false;
+      current = { title, links: [], defaultCollapsed };
+      blocks.push(current);
+      continue;
+    }
+    if (!current) continue;
+    const pipeIdx = line.indexOf('|');
+    if (pipeIdx !== -1) {
+      current.links.push({ url: line.slice(pipeIdx + 1).trim(), label: line.slice(0, pipeIdx).trim() });
+    } else {
+      current.links.push({ url: line, label: null });
+    }
+  }
+  return blocks;
+}
+
+function describeUrl(rawUrl, customLabel) {
+  let u;
+  try { u = new URL(rawUrl); }
+  catch { return { label: customLabel || rawUrl, sub: customLabel ? rawUrl : '', icon: '🔗' }; }
+  const host = u.hostname.replace(/^www\./, '');
+  const path = u.pathname === '/' ? '' : u.pathname;
+  const known = KNOWN_SITES.find(([re]) => re.test(host));
+  const icon = known ? known[2] : null;
+  if (customLabel) return { label: customLabel, sub: host + path, icon };
+  if (known) return { label: known[1], sub: host, icon };
+  return { label: host, sub: path, icon: null };
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function closeAllColorPickers() {
+  for (const opt of document.querySelectorAll('.lk-color-options:not([hidden])')) opt.hidden = true;
+}
+document.addEventListener('click', closeAllColorPickers);
+
+// Nº de columnas según el ancho de ventana. Fijo por umbrales (no medido en
+// el DOM), para que no dependa de cuánto ocupe el contenido ya renderizado.
+function columnCount() {
+  const w = window.innerWidth;
+  if (w < 720) return 1;
+  if (w < 1000) return 2;
+  return 3;
+}
+
+function renderSection(block, index, isExpanded, shadeIndex, overrides, blockColors) {
+  const color = blockColors[block.title] || PRESET_COLORS[index % PRESET_COLORS.length].hex;
+
+  const section = document.createElement('div');
+  section.className = `lk-section ${isExpanded ? 'is-expanded' : 'is-collapsed'}`;
+  if (!isExpanded) section.style.setProperty('--shade', Math.min(shadeIndex, 5));
+
+  const header = document.createElement('div');
+  header.className = 'lk-header';
+  header.innerHTML = `
+    <div class="lk-color-picker">
+      <button type="button" class="lk-color-swatch" style="--c:${color}" title="Elegir color del bloque"></button>
+      <div class="lk-color-options" hidden>
+        ${PRESET_COLORS.map(c => `<button type="button" class="color-opt ${color === c.hex ? 'is-selected' : ''}" data-color="${c.hex}" title="${c.name}" style="background:${c.hex}"></button>`).join('')}
+      </div>
+    </div>
+    <span class="lk-title">${escapeHtml(block.title)}</span>
+    <span class="lk-count">${block.links.length}</span>
+    <span class="lk-chevron">▸</span>
+  `;
+  header.addEventListener('click', () => {
+    overrides[block.title] = !isExpanded;
+    saveJson(EXPANDED_KEY, overrides);
+    render();
+  });
+
+  const colorPicker = header.querySelector('.lk-color-picker');
+  const colorOptions = header.querySelector('.lk-color-options');
+  colorPicker.addEventListener('click', (e) => e.stopPropagation());
+  header.querySelector('.lk-color-swatch').addEventListener('click', () => {
+    closeAllColorPickers();
+    colorOptions.hidden = !colorOptions.hidden;
+  });
+  for (const opt of colorOptions.querySelectorAll('.color-opt')) {
+    opt.addEventListener('click', () => {
+      blockColors[block.title] = opt.dataset.color;
+      saveJson(COLOR_KEY, blockColors);
+      render();
+    });
+  }
+  section.appendChild(header);
+
+  if (isExpanded) {
+    const list = document.createElement('div');
+    list.className = 'lk-links';
+    for (const item of block.links) {
+      const { label, sub, icon } = describeUrl(item.url, item.label);
+      const a = document.createElement('a');
+      a.className = 'lk-link';
+      a.href = item.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.innerHTML = `
+        <span class="lk-icon ${icon ? '' : 'is-dot'}">${icon || ''}</span>
+        <span class="lk-text">
+          <div class="lk-label">${escapeHtml(label)}</div>
+          ${sub ? `<div class="lk-sub">${escapeHtml(sub)}</div>` : ''}
+        </span>
+      `;
+      list.appendChild(a);
+    }
+    section.appendChild(list);
+  }
+  return section;
+}
+
+function render() {
+  const stack = document.getElementById('stack');
+  const blocks = parseLinks(LINKS_TEXT);
+
+  if (!blocks.length) {
+    stack.className = 'stack';
+    stack.innerHTML = '<p class="empty">Añade bloques y enlaces en LINKS_TEXT.</p>';
+    return;
+  }
+
+  const overrides = loadJson(EXPANDED_KEY, {});
+  const blockColors = loadJson(COLOR_KEY, {});
+  const cols = columnCount();
+
+  stack.innerHTML = '';
+  let collapsedCount = 0;
+  const sections = blocks.map((block, i) => {
+    // Si ya se ha tocado a mano, manda eso; si no, manda el marcador del bloque.
+    const isExpanded = Object.prototype.hasOwnProperty.call(overrides, block.title)
+      ? overrides[block.title]
+      : !block.defaultCollapsed;
+    const section = renderSection(block, i, isExpanded, isExpanded ? 0 : collapsedCount, overrides, blockColors);
+    if (!isExpanded) collapsedCount++;
+    return section;
+  });
+
+  if (cols === 1) {
+    // Pila única con bordes compartidos, como en móvil/tablet.
+    stack.className = 'stack';
+    for (const s of sections) stack.appendChild(s);
+    return;
+  }
+
+  // Varias columnas: cada bloque es su propia tarjeta, repartidas en orden
+  // fijo (bloque 0 → columna 0, bloque 1 → columna 1, ...) para que un
+  // bloque nunca cambie de columna solo por abrirse o cerrarse.
+  stack.className = 'stack lk-columns';
+  const colEls = Array.from({ length: cols }, () => {
+    const col = document.createElement('div');
+    col.className = 'lk-col';
+    stack.appendChild(col);
+    return col;
+  });
+  sections.forEach((s, i) => colEls[i % cols].appendChild(s));
+}
+
+let resizeTimer = null;
+let lastCols = columnCount();
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const cols = columnCount();
+    if (cols !== lastCols) { lastCols = cols; render(); }
+  }, 150);
+});
+
+render();
+</script>
+</body>
+</html>
